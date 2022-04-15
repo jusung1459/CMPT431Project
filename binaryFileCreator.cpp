@@ -8,13 +8,18 @@
 
 using namespace std; 
 
-int binRead(float array[], const string& file, unsigned long N, unsigned long start) {
-	ifstream ifstream;
-	ifstream.open(file);
+int binRead(vector<float> *array, const string& file, unsigned long N, unsigned long start) {
+	ifstream ifstream(file, std::ios::binary);
+
 	if (ifstream) {
         //https://stackoverflow.com/questions/18640001/read-several-bytes-jump-over-n-bytes-and-then-read-several-bytes-again-how
         ifstream.ignore(sizeof(float) * start);
-		ifstream.read(reinterpret_cast<char *>(array), sizeof(float) * (N-start));
+		for (int i = 0; i < N; i++) {
+			ifstream.read(reinterpret_cast<char*>(&array->at(i)), sizeof(float));
+		}
+		if (!ifstream) {
+			printf("bad read\n");
+		}
 		ifstream.close();
 		return 0;
 	}
@@ -22,11 +27,13 @@ int binRead(float array[], const string& file, unsigned long N, unsigned long st
 		return -1;
 }
 
-int binWrite(float array[], const string& file, unsigned long N) {
+int binWrite(vector<float> *array, const string& file, unsigned long N) {
 	ofstream ofstream;
 	ofstream.open(file);
 	if (ofstream) {
-		ofstream.write(reinterpret_cast<const char *>(array), sizeof(float) * N);
+		for (int i = 0; i < N; i++) {
+			ofstream.write(reinterpret_cast<const char *>(&array->at(i)), sizeof(float));
+		}
 		ofstream.close();
 		return 0;
 	}
@@ -34,26 +41,27 @@ int binWrite(float array[], const string& file, unsigned long N) {
 		return -1;
 }
 
-float *createFloatingPoints(unsigned long N, int seed) {
-    float *arr = new float[N];
+void createFloatingPoints(vector<float> *arr, unsigned long N, int seed) {
     for (int i = 0; i < N; i++) {
         float random = ((float) rand()) / (float) RAND_MAX;
-        arr[i] = random;
+        arr->at(i) = random;
         // printf("%f ", random);
     }
-    return arr;
 } 
 
 int main()
 {	
-    unsigned long size = 250;
-	// float *arr = createFloatingPoints(size, 123);
+    unsigned long size = 100;
+	vector<float> *arr = new vector<float>(size);
+	// createFloatingPoints(arr, size, 123);
 	// binWrite(arr, "randomFloats.bin", size);
-    unsigned long pass = 1;
-    float *readArr = new float[size-pass];
+	
+    unsigned long pass = 0;
+    vector<float> *readArr = new vector<float>(size);
+
     binRead(readArr, "randomFloats.bin", size,pass);
     for (unsigned long i = 0; i < 5; i++) {
-        printf("%f\n", readArr[i]);
+        printf("%f\n", readArr->at(i)); 
     }
     return 0;
 }
