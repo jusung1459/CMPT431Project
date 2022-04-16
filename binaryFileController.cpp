@@ -49,19 +49,19 @@ void createFloatingPoints(vector<float> *arr, unsigned long N, int seed) {
     }
 } 
 
-int main()
-{	
-    unsigned long size = 100;
-	vector<float> *arr = new vector<float>(size);
-	// createFloatingPoints(arr, size, 123);
-	// binWrite(arr, "randomFloats.bin", size);
+// int main()
+// {	
+//     unsigned long size = 100;
+// 	vector<float> *arr = new vector<float>(size);
+// 	// createFloatingPoints(arr, size, 123);
+// 	// binWrite(arr, "randomFloats.bin", size);
 	
-    unsigned long pass = 0;
-    vector<float> *readArr = new vector<float>(size);
+//     unsigned long pass = 0;
+//     vector<float> *readArr = new vector<float>(size);
 
-    binRead(readArr, "randomFloats.bin", size,pass);
-    for (unsigned long i = 0; i < 5; i++) {
-        printf("%f\n", readArr->at(i)); 
-    }
-    return 0;
-}
+//     binRead(readArr, "randomFloats.bin", size,pass);
+//     for (unsigned long i = 0; i < 5; i++) {
+//         printf("%f\n", readArr->at(i)); 
+//     }
+//     return 0;
+// }
