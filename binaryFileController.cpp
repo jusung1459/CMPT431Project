@@ -27,9 +27,12 @@ int binRead(vector<float> *array, const string& file, unsigned long N, unsigned 
 		return -1;
 }
 
-int binWrite(vector<float> *array, const string& file, unsigned long N) {
+int binWrite(vector<float> *array, const string& file, unsigned long N, int append) {
 	ofstream ofstream;
-	ofstream.open(file);
+	if (append == 1)
+        ofstream.open(file, std::ios_base::app);
+    else
+        ofstream.open(file);
 	if (ofstream) {
 		for (int i = 0; i < N; i++) {
 			ofstream.write(reinterpret_cast<const char *>(&array->at(i)), sizeof(float));
