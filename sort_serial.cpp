@@ -93,7 +93,17 @@ void merge_K(unsigned int K, unsigned long size, unsigned int ram) {
     sorted_vec.push_back(minh.top().value);
     minh.pop();
 
-    if (index_K[chunk] < split_size) {
+    if (index_K[chunk] >= current_MaxK[chunk]) {
+      // read in next chunk from file and put into vector when empty
+      if (index_K[chunk] < split_size) {
+        vecs[chunk].resize(0);
+        vecs[chunk].reserve(current_MaxK[chunk]);
+        std::string file = "sortedFloats_" + std::to_string(chunk) + ".bin";
+        binRead(&vecs[chunk], file, current_MaxK[chunk], index_K[chunk]);
+      }
+    }
+
+    if (index_K[chunk] < current_MaxK[chunk]) {
       struct Node node;
       node.value = vecs[chunk][index_K[chunk]];
       node.chunk = chunk;
@@ -101,12 +111,12 @@ void merge_K(unsigned int K, unsigned long size, unsigned int ram) {
       index_K[chunk]++;
       index++;
       // printf("%d %d\n", chunk, index_K[chunk]);
-    }
+    } 
       
-    if(sorted_vec.size() > split_size) {
+    if(sorted_vec.size() > current_MaxK[chunk]) {
       binWrite(&sorted_vec, "sortedfloats.bin", sorted_vec.size(), 1);
       sorted_vec.resize(0);
-      sorted_vec.reserve(split_size);
+      sorted_vec.reserve(current_MaxK[chunk]);
       printf("pushed\n");
     }
     
