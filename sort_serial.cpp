@@ -57,8 +57,9 @@ void merge_K(unsigned int K, unsigned long size, unsigned int ram) {
   std::vector<float> sorted_vec;
   int index_K[K];
   unsigned long current_MaxK[K];
+  unsigned long prev_MaxK[K];
   unsigned long split_size = size/K;
-  unsigned long avaiable_floats = ((ram * 1000000000)/4)/(K+1);
+  unsigned long avaiable_floats = 10000; //((ram * 1000000000)/4)/(K+1);
   sorted_vec.reserve(split_size);
   printf("%lu %lu\n", avaiable_floats, split_size);
   for (int i = 0; i < K; i++) {
@@ -69,6 +70,7 @@ void merge_K(unsigned int K, unsigned long size, unsigned int ram) {
     } else {
       current_MaxK[i] = split_size;
     }
+    prev_MaxK[i] = 0;
     vecs[i].resize(current_MaxK[i]);
     binRead(&vecs[i], file, current_MaxK[i], index_K[i]);
   }
@@ -96,28 +98,33 @@ void merge_K(unsigned int K, unsigned long size, unsigned int ram) {
     if (index_K[chunk] >= current_MaxK[chunk]) {
       // read in next chunk from file and put into vector when empty
       if (index_K[chunk] < split_size) {
+        prev_MaxK[chunk] = current_MaxK[chunk];
+        if ((avaiable_floats+index_K[chunk]) < split_size) {
+          current_MaxK[chunk] = avaiable_floats+index_K[chunk];
+        } else {
+          current_MaxK[chunk] = split_size;
+        }
         vecs[chunk].resize(0);
-        vecs[chunk].reserve(current_MaxK[chunk]);
+        vecs[chunk].resize(current_MaxK[chunk]-index_K[chunk]);
         std::string file = "sortedFloats_" + std::to_string(chunk) + ".bin";
-        binRead(&vecs[chunk], file, current_MaxK[chunk], index_K[chunk]);
+        binRead(&vecs[chunk], file, (current_MaxK[chunk]-index_K[chunk]), index_K[chunk]);
       }
     }
 
     if (index_K[chunk] < current_MaxK[chunk]) {
       struct Node node;
-      node.value = vecs[chunk][index_K[chunk]];
+      printf("before value, prev_max: %ld, current_maxK: %ld, index_K: %d, diff:%ld \n", prev_MaxK[chunk], current_MaxK[chunk], index_K[chunk], index_K[chunk]-prev_MaxK[chunk]);
+      node.value = vecs[chunk][index_K[chunk]-prev_MaxK[chunk]];
       node.chunk = chunk;
       minh.push(node);
       index_K[chunk]++;
       index++;
-      // printf("%d %d\n", chunk, index_K[chunk]);
     } 
       
-    if(sorted_vec.size() > current_MaxK[chunk]) {
+    if(sorted_vec.size() > split_size) {
       binWrite(&sorted_vec, "sortedfloats.bin", sorted_vec.size(), 1);
       sorted_vec.resize(0);
       sorted_vec.reserve(current_MaxK[chunk]);
-      printf("pushed\n");
     }
     
   }
