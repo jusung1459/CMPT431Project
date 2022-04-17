@@ -59,7 +59,7 @@ void merge_K(unsigned int K, unsigned long size, unsigned int ram) {
   unsigned long current_MaxK[K];
   unsigned long prev_MaxK[K];
   unsigned long split_size = size/K;
-  unsigned long avaiable_floats = 10000; //((ram * 1000000000)/4)/(K+1);
+  unsigned long avaiable_floats = 100000000; //((ram * 1000000000)/4)/(K+1);
   sorted_vec.reserve(split_size);
   printf("%lu %lu\n", avaiable_floats, split_size);
   for (int i = 0; i < K; i++) {
@@ -113,7 +113,7 @@ void merge_K(unsigned int K, unsigned long size, unsigned int ram) {
 
     if (index_K[chunk] < current_MaxK[chunk]) {
       struct Node node;
-      printf("before value, prev_max: %ld, current_maxK: %ld, index_K: %d, diff:%ld \n", prev_MaxK[chunk], current_MaxK[chunk], index_K[chunk], index_K[chunk]-prev_MaxK[chunk]);
+      // printf("before value, prev_max: %ld, current_maxK: %ld, index_K: %d, diff:%ld \n", prev_MaxK[chunk], current_MaxK[chunk], index_K[chunk], index_K[chunk]-prev_MaxK[chunk]);
       node.value = vecs[chunk][index_K[chunk]-prev_MaxK[chunk]];
       node.chunk = chunk;
       minh.push(node);
@@ -173,19 +173,21 @@ int main(int argc, char *argv[]) {
   sort_K(n_split, n_size);
   merge_K(n_split, n_size, n_ram);
 
-  vector<float> sorted_array;
-  sorted_array.resize(n_size);
-
-  binRead(&sorted_array, "sortedfloats.bin", n_size, 0);
-  printf("%lu\n", sorted_array.size());
-  isSort(sorted_array, n_size);
-  for (int i = 0; i < 50; i++) {
-    printf("%f ", sorted_array[i]);
-  }
-
-
   double time_taken = serial_timer.stop();
   printf("time: %f\n", time_taken);
+
+  vector<float> sorted_array;
+
+  for (int k = 0; k < 10; k++) {
+    sorted_array.resize(0);
+    sorted_array.resize(n_size/10);
+    binRead(&sorted_array, "sortedfloats.bin", n_size/10, k*(n_size/10));
+    printf("%lu\n", sorted_array.size());
+    isSort(sorted_array, n_size/10);
+  }
+  // for (int i = 0; i < 50; i++) {
+  //   printf("%f ", sorted_array[i]);
+  // }
 
   return 0;
 }
