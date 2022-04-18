@@ -161,9 +161,14 @@ int main(int argc, char *argv[]) {
 
   if (n_create == 1) {
     // create floats
-    vector<float> *arr = new vector<float>(n_size);
-    createFloatingPoints(arr, n_size, 123);
-    binWrite(arr, "randomFloats.bin", n_size, 0);
+    vector<float> *arr = new vector<float>(n_size/10);
+    for (int i = 0; i < 10; i++) {
+      arr->resize(n_size/10);
+      createFloatingPoints(arr, n_size/10, 123);
+      binWrite(arr, "randomFloats.bin", n_size/10, 1);
+      arr->resize(0);
+    }
+    delete arr;
   }
 
   serial_timer.start();
@@ -191,3 +196,6 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
+
+
+// ./sort_serial --nSize 10000000000 --nSplit 10 --nCreate 0
