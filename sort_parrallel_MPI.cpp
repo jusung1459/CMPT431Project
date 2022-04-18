@@ -2,83 +2,211 @@
 #include <iomanip>
 #include <iostream>
 #include <stdlib.h>
+#include <vector>
+#include <queue>
+#include <mpi.h>
+#include "binaryFileController.cpp"
 
-#define sqr(x) ((x) * (x))
-#define DEFAULT_NUMBER_OF_POINTS "1000000000"
-#define DEFAULT_A "2"
-#define DEFAULT_B "1"
-#define DEFAULT_RANDOM_SEED "1"
+#define DEFAULT_N "10000000000"
+#define DEFAULT_SPLIT "8"
+#define DEFAULT_SEED 123
+#define DEFAULT_CREATE "0"
+#define DEFAULT_RAM_SIZE "5"
 
-uint c_const = (uint)RAND_MAX + (uint)1;
-inline double get_random_coordinate(uint *random_seed) {
-  return ((double)rand_r(random_seed)) / c_const;  // thread-safe random number generator
-}
+struct Node {
+  float value;
+  int chunk;
+};
 
-unsigned long get_points_in_curve(unsigned long n, uint random_seed, float a, float b) {
-  unsigned long curve_count = 0;
-  double x_coord, y_coord;
-  for (unsigned long i = 0; i < n; i++) {
-    x_coord = ((2.0 * get_random_coordinate(&random_seed)) - 1.0);
-    y_coord = ((2.0 * get_random_coordinate(&random_seed)) - 1.0);
-    if ((a*sqr(x_coord) + b*sqr(sqr(y_coord))) <= 1.0)
-      curve_count++;
+struct compare {
+  bool operator()(Node a,Node b)
+  {
+      return a.value>b.value;
   }
-  return curve_count;
+};
+
+bool isSort(std::vector<float> arr, unsigned long N) {
+  float prev, cur, next;
+  for(int i = 1; i < N; i++) {
+    if (arr[i-1] > arr[i]) {
+      prev = arr[i-1];
+      cur = arr[i];
+      next = arr[i+1];
+      printf("prev: %f, cur: %f, next: %f\n", prev, cur, next);
+      return false;
+    }
+  }
+  printf("is sorted\n");
+  return true;
 }
 
-void curve_area_calculation_serial(unsigned long n, float a, float b, uint r_seed) {
-  timer serial_timer;
-  double time_taken = 0.0;
-  uint random_seed = r_seed;
+void sort_K(unsigned int k, unsigned long size) {
+  unsigned long split_size = size/k;
 
-  serial_timer.start();
+  for (int i = 0; i < k; i++) {
+    vector<float> *readArr = new vector<float>(size);
+    std::string file_name = "sortedFloats_" + std::to_string(i) + ".bin";
+    binRead(readArr, "randomFloats.bin", split_size,i*split_size);
+    std::sort((*readArr).begin(), (*readArr).begin()+split_size);
+    binWrite(readArr, file_name, split_size, 0);
+    delete readArr;
+  }
+}
  
-  unsigned long curve_points = get_points_in_curve(n, r_seed, a, b);
-  
-  double area_value =
-      4.0 * (double)curve_points / (double)n;
+void merge_K(unsigned int K, unsigned long size, unsigned int ram) {
+  std::vector<float> vecs[K];
+  std::vector<float> sorted_vec;
+  int index_K[K];
+  unsigned long current_MaxK[K];
+  unsigned long prev_MaxK[K];
+  unsigned long split_size = size/K;
+  unsigned long avaiable_floats = 100000000; //((ram * 1000000000)/4)/(K+1);
+  sorted_vec.reserve(split_size);
+  printf("%lu %lu\n", avaiable_floats, split_size);
+  for (int i = 0; i < K; i++) {
+    std::string file = "sortedFloats_" + std::to_string(i) + ".bin";
+    index_K[i] = 0;
+    if (avaiable_floats < split_size) {
+      current_MaxK[i] = avaiable_floats;
+    } else {
+      current_MaxK[i] = split_size;
+    }
+    prev_MaxK[i] = 0;
+    vecs[i].resize(current_MaxK[i]);
+    binRead(&vecs[i], file, current_MaxK[i], index_K[i]);
+  }
+  priority_queue<Node,vector<Node>, compare> minh;
+  unsigned long index = 0;
+  for(int j=0; j<K; j++) {
+    if(vecs[j].empty() != true) {
+      struct Node node;
+      node.value = vecs[j][index_K[j]];
+      node.chunk = j;
+      minh.push(node);
+      index_K[j]++;
+      // printf("%d %f ", j, vecs[j][index_K[j]]);
+      index++;
+    }
+  }
 
-  //*------------------------------------------------------------------------
-  time_taken = serial_timer.stop();
+  int chunk =0;
+  while(minh.size() > 0) {
+    // get min and pop off heap
+    chunk = minh.top().chunk;
+    sorted_vec.push_back(minh.top().value);
+    minh.pop();
 
-  std::cout << "rank, points_generated, curve_points, time_taken\n";
-  std::cout << "1, " << n << ", "
-              << curve_points << ", " << std::setprecision(TIME_PRECISION)
-              << time_taken << "\n";
+    if (index_K[chunk] >= current_MaxK[chunk]) {
+      // read in next chunk from file and put into vector when empty
+      if (index_K[chunk] < split_size) {
+        prev_MaxK[chunk] = current_MaxK[chunk];
+        if ((avaiable_floats+index_K[chunk]) < split_size) {
+          current_MaxK[chunk] = avaiable_floats+index_K[chunk];
+        } else {
+          current_MaxK[chunk] = split_size;
+        }
+        vecs[chunk].resize(0);
+        vecs[chunk].resize(current_MaxK[chunk]-index_K[chunk]);
+        std::string file = "sortedFloats_" + std::to_string(chunk) + ".bin";
+        binRead(&vecs[chunk], file, (current_MaxK[chunk]-index_K[chunk]), index_K[chunk]);
+      }
+    }
 
-  std::cout << "Total points generated : " << n << "\n";
-  std::cout << "Total points in curve : " << curve_points << "\n";
-  std::cout << "Area : " << std::setprecision(VAL_PRECISION) << area_value
-            << "\n";
-  std::cout << "Time taken (in seconds) : " << std::setprecision(TIME_PRECISION)
-            << time_taken << "\n";
-}
+    if (index_K[chunk] < current_MaxK[chunk]) {
+      struct Node node;
+      // printf("before value, prev_max: %ld, current_maxK: %ld, index_K: %d, diff:%ld \n", prev_MaxK[chunk], current_MaxK[chunk], index_K[chunk], index_K[chunk]-prev_MaxK[chunk]);
+      node.value = vecs[chunk][index_K[chunk]-prev_MaxK[chunk]];
+      node.chunk = chunk;
+      minh.push(node);
+      index_K[chunk]++;
+      index++;
+    } 
+      
+    if(sorted_vec.size() > split_size) {
+      binWrite(&sorted_vec, "sortedfloats.bin", sorted_vec.size(), 1);
+      sorted_vec.resize(0);
+      sorted_vec.reserve(current_MaxK[chunk]);
+    }
+    
+  }
+  binWrite(&sorted_vec, "sortedfloats.bin", sorted_vec.size(), 1);
+  printf("indx: %lu\n", index);
+} 
 
 int main(int argc, char *argv[]) {
   // Initialize command line arguments
-  cxxopts::Options options("Curve_area_calculation",
-                           "Calculate area inside curve a x^2 + b y ^4 = 1 using serial and parallel execution");
+  cxxopts::Options options("Serial Sorter",
+                           "Sort lots of floating points");
   options.add_options(
       "custom",
       {
-          {"nPoints", "Number of points",         
-           cxxopts::value<unsigned long>()->default_value(DEFAULT_NUMBER_OF_POINTS)},
-	        {"coeffA", "Coefficient a",
-	         cxxopts::value<float>()->default_value(DEFAULT_A)},
-          {"coeffB", "Coefficient b",
-           cxxopts::value<float>()->default_value(DEFAULT_B)},
-          {"rSeed", "Random Seed",
-           cxxopts::value<uint>()->default_value(DEFAULT_RANDOM_SEED)}
+          {"nSize", "Number of floating points",         
+           cxxopts::value<unsigned long>()->default_value(DEFAULT_N)},
+          {"nSplit", "Number of split points",         
+           cxxopts::value<unsigned long>()->default_value(DEFAULT_SPLIT)},
+          {"nCreate", "Number of split points",         
+           cxxopts::value<unsigned int>()->default_value(DEFAULT_CREATE)},
+           {"nRam", "Number of split points",         
+           cxxopts::value<unsigned int>()->default_value(DEFAULT_RAM_SIZE)} 
       });
   auto cl_options = options.parse(argc, argv);
-  unsigned long n_points = cl_options["nPoints"].as<unsigned long>();
-  float a = cl_options["coeffA"].as<float>();
-  float b = cl_options["coeffB"].as<float>();
-  uint r_seed = cl_options["rSeed"].as<uint>();
-  std::cout << "Number of points : " << n_points << "\n";;
-  std::cout << "A : " << a << "\n" << "B : " << b << "\n";
-  std::cout << "Random Seed : " << r_seed << "\n";
+  unsigned long n_size = cl_options["nSize"].as<unsigned long>();
+  unsigned long n_split = cl_options["nSplit"].as<unsigned long>();
+  unsigned int n_create = cl_options["nCreate"].as<unsigned int>();
+  unsigned int n_ram = cl_options["nRam"].as<unsigned int>();
+  std::cout << "Number of floating points : " << n_size << "\n";
+  std::cout << "Number of split points : " << n_split << "\n";
+  std::cout << "Create floats : " << n_create << "\n";
+  std::cout << "Ram Size : " << n_ram << "\n";
+  timer serial_timer;
 
-  curve_area_calculation_serial(n_points, a, b, r_seed);
+  MPI_Init(NULL, NULL);
+
+  // Get the number of processes
+  int world_size;
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+  // Get the rank of the process
+  int world_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
+  if (n_create == 1) {
+    // create floats
+    vector<float> *arr = new vector<float>(n_size/10);
+    for (int i = 0; i < 10; i++) {
+      arr->resize(n_size/10);
+      createFloatingPoints(arr, n_size/10, 123);
+      binWrite(arr, "randomFloats.bin", n_size/10, 1);
+      arr->resize(0);
+    }
+    delete arr;
+  }
+
+  serial_timer.start();
+
+  // read N points and sort
+  // write sorted to file
+  sort_K(n_split, n_size);
+  merge_K(n_split, n_size, n_ram);
+
+  double time_taken = serial_timer.stop();
+  printf("time: %f\n", time_taken);
+
+  vector<float> sorted_array;
+
+  for (int k = 0; k < 10; k++) {
+    sorted_array.resize(0);
+    sorted_array.resize(n_size/10);
+    binRead(&sorted_array, "sortedfloats.bin", n_size/10, k*(n_size/10));
+    printf("%lu\n", sorted_array.size());
+    isSort(sorted_array, n_size/10);
+  }
+  // for (int i = 0; i < 50; i++) {
+  //   printf("%f ", sorted_array[i]);
+  // }
+
   return 0;
 }
+
+
+// ./sort_serial --nSize 10000000000 --nSplit 10 --nCreate 0
