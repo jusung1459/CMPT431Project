@@ -9,7 +9,7 @@ MPICXX = mpic++
 CXXFLAGS = -std=c++14 -O3 $(MACRO)
 
 COMMON= core/utils.h core/cxxopts.h core/get_time.h 
-SERIAL= sort_serial sort_parrallel
+SERIAL= sort_serial sort_parrallel generateFloats
 PARALLEL= sort_parrallel_MPI
 ALL= $(SERIAL) $(PARALLEL)
 
