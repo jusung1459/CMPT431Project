@@ -59,7 +59,7 @@ void merge_K(unsigned int K, unsigned long size, unsigned int ram) {
   unsigned long current_MaxK[K];
   unsigned long prev_MaxK[K];
   unsigned long split_size = size/K;
-  unsigned long avaiable_floats = 100000000; //((ram * 1000000000)/4)/(K+1);
+  unsigned long avaiable_floats = 10000000; //((ram * 1000000000)/4)/(K+1);
   sorted_vec.reserve(split_size);
   printf("%lu %lu\n", avaiable_floats, split_size);
   for (int i = 0; i < K; i++) {
