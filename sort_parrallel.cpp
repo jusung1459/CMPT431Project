@@ -196,10 +196,10 @@ int main(int argc, char *argv[]) {
 
   for (int k = 0; k < 10; k++) {
     sorted_array.resize(0);
-    sorted_array.resize(n_size/10);
-    binRead(&sorted_array, "sortedfloats.bin", n_size/10, k*(n_size/10));
+    sorted_array.resize(n_size/(n_split*n_threads));
+    binRead(&sorted_array, "sortedfloats.bin", n_size/(n_split*n_threads), k*(n_size/(n_split*n_threads)));
     printf("%lu\n", sorted_array.size());
-    isSort(sorted_array, n_size/10);
+    isSort(sorted_array, n_size/(n_split*n_threads));
   }
   // for (int i = 0; i < 50; i++) {
   //   printf("%f ", sorted_array[i]);

@@ -20,7 +20,6 @@ int binRead(vector<float> *array, const string& file, unsigned long N, unsigned 
 			ifstream.read(reinterpret_cast<char*>(&array->at(i)), sizeof(float));
 		}
 		if (!ifstream) {
-			printf("bad read\n");
 		}
 		ifstream.close();
 		return 0;
