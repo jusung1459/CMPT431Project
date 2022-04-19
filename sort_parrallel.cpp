@@ -1,4 +1,3 @@
-#include "core/utils.h"
 #include <iomanip>
 #include <iostream>
 #include <stdlib.h>
@@ -6,7 +5,11 @@
 #include <queue>
 #include <thread>
 #include <mutex>
-#include "binaryFileController.cpp"
+#include "core/cxxopts.h"
+#include "core/get_time.h"
+#include "binaryFileController.h"
+
+using namespace std;
 
 #define DEFAULT_N "10000000000"
 #define DEFAULT_SPLIT "8"
@@ -44,10 +47,12 @@ bool isSort(std::vector<float> arr, unsigned long N) {
 
 void sort_K(unsigned int k, unsigned long size, unsigned int start, unsigned int end) {
   unsigned long split_size = size/k;
+  printf("%d, %d\n", start, end);
 
   for (int i = start; i < end; i++) {
     vector<float> *readArr = new vector<float>(size);
     std::string file_name = "sortedFloats_" + std::to_string(i) + ".bin";
+    printf("%d\n", i);
     binRead(readArr, "randomFloats.bin", split_size,i*split_size);
     std::sort((*readArr).begin(), (*readArr).begin()+split_size);
     binWrite(readArr, file_name, split_size, 0);
@@ -185,17 +190,19 @@ int main(int argc, char *argv[]) {
   std::thread threads[n_threads];
 
   int start = 0;
-  int end = n_split/n_threads;
+  int end = n_split/2;
+  printf("main %d %d\n", start, end);
   for (unsigned int i = 0; i < n_threads; i++) {
     threads[i] = std::thread(sort_K, 
-                            n_split, n_size, start, end);
+                            n_split*n_threads, n_size, start, end);
     start = end;
-    int end = (i+2)*(n_split/n_threads);          
+    end = (i+2)*(n_split/2);          
+    printf("main %d %d\n", start, end);
   } 
   for (int i = 0; i < n_threads; i++) {
     threads[i].join();
   } 
-  
+
   merge_K(n_split, n_size, n_ram);
 
   double time_taken = serial_timer.stop();

@@ -1,10 +1,9 @@
-#include "core/utils.h"
 #include <iomanip>
 #include <iostream>
 #include <stdlib.h>
 #include <vector>
 #include <queue>
-#include "binaryFileController.cpp"
+#include "binaryFileController.h"
 
 #define DEFAULT_N "10000000000"
 

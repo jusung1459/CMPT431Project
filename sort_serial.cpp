@@ -1,10 +1,11 @@
-#include "core/utils.h"
+#include "core/cxxopts.h"
+#include "core/get_time.h"
 #include <iomanip>
 #include <iostream>
 #include <stdlib.h>
 #include <vector>
 #include <queue>
-#include "binaryFileController.cpp"
+#include "binaryFileController.h"
 
 #define DEFAULT_N "10000000000"
 #define DEFAULT_SPLIT "8"
@@ -46,8 +47,10 @@ void sort_K(unsigned int k, unsigned long size) {
     vector<float> *readArr = new vector<float>(size);
     std::string file_name = "sortedFloats_" + std::to_string(i) + ".bin";
     binRead(readArr, "randomFloats.bin", split_size,i*split_size);
+    printf("finished reading from large bin file, index: %d \n", i);
     std::sort((*readArr).begin(), (*readArr).begin()+split_size);
     binWrite(readArr, file_name, split_size, 0);
+    printf("finished writing to bin file %s \n", file_name.c_str());
     delete readArr;
   }
 }
@@ -159,17 +162,17 @@ int main(int argc, char *argv[]) {
   std::cout << "Ram Size : " << n_ram << "\n";
   timer serial_timer;
 
-  if (n_create == 1) {
-    // create floats
-    vector<float> *arr = new vector<float>(n_size/10);
-    for (int i = 0; i < 10; i++) {
-      arr->resize(n_size/10);
-      createFloatingPoints(arr, n_size/10, 123);
-      binWrite(arr, "randomFloats.bin", n_size/10, 1);
-      arr->resize(0);
-    }
-    delete arr;
-  }
+  // if (n_create == 1) {
+  //   // create floats
+  //   vector<float> *arr = new vector<float>(n_size/10);
+  //   for (int i = 0; i < 10; i++) {
+  //     arr->resize(n_size/10);
+  //     createFloatingPoints(arr, n_size/10, 123);
+  //     binWrite(arr, "randomFloats.bin", n_size/10, 1);
+  //     arr->resize(0);
+  //   }
+  //   delete arr;
+  // }
 
   serial_timer.start();
 

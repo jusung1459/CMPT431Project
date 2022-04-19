@@ -1,11 +1,12 @@
-#include "core/utils.h"
+#include "core/cxxopts.h"
+#include "core/get_time.h"
 #include <iomanip>
 #include <iostream>
 #include <stdlib.h>
 #include <vector>
 #include <queue>
 #include <mpi.h>
-#include "binaryFileController.cpp"
+#include "binaryFileController.h"
 
 #define DEFAULT_N "10000000000"
 #define DEFAULT_SPLIT "8"
