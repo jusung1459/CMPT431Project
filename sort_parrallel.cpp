@@ -42,10 +42,10 @@ bool isSort(std::vector<float> arr, unsigned long N) {
   return true;
 }
 
-void sort_K(unsigned int k, unsigned long size) {
+void sort_K(unsigned int k, unsigned long size, unsigned int start, unsigned int end) {
   unsigned long split_size = size/k;
 
-  for (int i = 0; i < k; i++) {
+  for (int i = start; i < end; i++) {
     vector<float> *readArr = new vector<float>(size);
     std::string file_name = "sortedFloats_" + std::to_string(i) + ".bin";
     binRead(readArr, "randomFloats.bin", split_size,i*split_size);
@@ -54,7 +54,7 @@ void sort_K(unsigned int k, unsigned long size) {
     delete readArr;
   }
 }
- 
+
 void merge_K(unsigned int K, unsigned long size, unsigned int ram) {
   std::vector<float> vecs[K];
   std::vector<float> sorted_vec;
@@ -184,9 +184,18 @@ int main(int argc, char *argv[]) {
 
   std::thread threads[n_threads];
 
-  // read N points and sort
-  // write sorted to file
-  sort_K(n_split, n_size);
+  int start = 0;
+  int end = n_split/n_threads;
+  for (unsigned int i = 0; i < n_threads; i++) {
+    threads[i] = std::thread(sort_K, 
+                            n_split, n_size, start, end);
+    start = end;
+    int end = (i+2)*(n_split/n_threads);          
+  } 
+  for (int i = 0; i < n_threads; i++) {
+    threads[i].join();
+  } 
+  
   merge_K(n_split, n_size, n_ram);
 
   double time_taken = serial_timer.stop();
