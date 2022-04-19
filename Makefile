@@ -6,7 +6,7 @@ endif
 #compiler setup
 CXX = g++
 MPICXX = mpic++
-CXXFLAGS = -std=c++14 -O0 -g $(MACRO) binaryFileController.cpp
+CXXFLAGS = -std=c++14 -O3 -pthread $(MACRO) binaryFileController.cpp
 
 COMMON= core/utils.h core/cxxopts.h core/get_time.h 
 SERIAL= sort_serial sort_parrallel generateFloats
