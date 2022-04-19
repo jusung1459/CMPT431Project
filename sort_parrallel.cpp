@@ -17,6 +17,7 @@ using namespace std;
 #define DEFAULT_RAM_SIZE "5"
 #define DEFAULT_THREAD_SIZE "2"
 
+// Node to store value and chunk file number
 struct Node {
   float value;
   int chunk;
@@ -29,6 +30,7 @@ struct compare {
   }
 };
 
+// checks if array is sorted
 bool isSort(std::vector<float> arr, unsigned long N) {
   float prev, cur, next;
   for(int i = 1; i < N; i++) {
@@ -44,6 +46,9 @@ bool isSort(std::vector<float> arr, unsigned long N) {
   return true;
 }
 
+// reads in a chunk from the large file to vector
+// then sorts the vector
+// store sorted vector into sub file
 void sort_K(unsigned int k, unsigned long size, unsigned int start, unsigned int end, unsigned int threads) {
   unsigned long split_size = size/threads;
   printf("%d, %d\n", start, end);
@@ -60,6 +65,9 @@ void sort_K(unsigned int k, unsigned long size, unsigned int start, unsigned int
   }
 }
 
+// loads in chunks from sub files into vectors
+// merges vectors into sorted vector
+// by using min heap to compare values
 void merge_K(unsigned int K, unsigned long size, unsigned int ram, unsigned int threads) {
   std::vector<float> vecs[K*threads];
   std::vector<float> sorted_vec;
