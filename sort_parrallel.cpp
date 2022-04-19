@@ -50,7 +50,7 @@ void sort_K(unsigned int k, unsigned long size, unsigned int start, unsigned int
   printf("%d, %d\n", start, end);
 
   for (int i = start; i < end; i++) {
-    vector<float> *readArr = new vector<float>(size);
+    vector<float> *readArr = new vector<float>(split_size);\
     std::string file_name = "sortedFloats_" + std::to_string(i) + ".bin";
     printf("%d\n", i);
     binRead(readArr, "randomFloats.bin", split_size,i*split_size);

@@ -44,7 +44,7 @@ void sort_K(unsigned int k, unsigned long size) {
   unsigned long split_size = size/k;
 
   for (int i = 0; i < k; i++) {
-    vector<float> *readArr = new vector<float>(size);
+    vector<float> *readArr = new vector<float>(split_size);
     std::string file_name = "sortedFloats_" + std::to_string(i) + ".bin";
     binRead(readArr, "randomFloats.bin", split_size,i*split_size);
     printf("finished reading from large bin file, index: %d \n", i);

@@ -11,12 +11,11 @@
 using namespace std; 
 
 int binRead(vector<float> *array, const string& file, unsigned long N, unsigned long start) {
-	std::cout << "HELLO!" << "\n";
 	ifstream ifstream(file, std::ios::binary);
 
 	if (ifstream) {
         //https://stackoverflow.com/questions/18640001/read-several-bytes-jump-over-n-bytes-and-then-read-several-bytes-again-how
-        ifstream.seekg(sizeof(float) * start, std::ios::cur);
+        ifstream.ignore(sizeof(float) * start);
 		for (int i = 0; i < N; i++) {
 			ifstream.read(reinterpret_cast<char*>(&array->at(i)), sizeof(float));
 		}
