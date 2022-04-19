@@ -15,10 +15,10 @@ int main(int argc, char *argv[]) {
       "custom",
       {
           {"nSize", "Number of floating points",         
-           cxxopts::value<unsigned long>()->default_value(DEFAULT_N)}
+           cxxopts::value<unsigned long long>()->default_value(DEFAULT_N)}
       });
   auto cl_options = options.parse(argc, argv);
-  unsigned long n_size = cl_options["nSize"].as<unsigned long>();
+  unsigned long long n_size = cl_options["nSize"].as<unsigned long long>();
   std::cout << "Number of floating points : " << n_size << "\n";
   timer serial_timer;
 
@@ -41,6 +41,7 @@ int main(int argc, char *argv[]) {
 
   double time_taken = serial_timer.stop();
   printf("time: %f\n", time_taken);
+  printf("Finished creating %llu random floats\n", n_size);
 
   return 0;
 }

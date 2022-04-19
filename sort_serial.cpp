@@ -143,17 +143,17 @@ int main(int argc, char *argv[]) {
       "custom",
       {
           {"nSize", "Number of floating points",         
-           cxxopts::value<unsigned long>()->default_value(DEFAULT_N)},
+           cxxopts::value<unsigned long long>()->default_value(DEFAULT_N)},
           {"nSplit", "Number of split points",         
-           cxxopts::value<unsigned long>()->default_value(DEFAULT_SPLIT)},
+           cxxopts::value<unsigned long long>()->default_value(DEFAULT_SPLIT)},
           {"nCreate", "Number of split points",         
            cxxopts::value<unsigned int>()->default_value(DEFAULT_CREATE)},
            {"nRam", "Number of split points",         
            cxxopts::value<unsigned int>()->default_value(DEFAULT_RAM_SIZE)} 
       });
   auto cl_options = options.parse(argc, argv);
-  unsigned long n_size = cl_options["nSize"].as<unsigned long>();
-  unsigned long n_split = cl_options["nSplit"].as<unsigned long>();
+  unsigned long long n_size = cl_options["nSize"].as<unsigned long long>();
+  unsigned long long n_split = cl_options["nSplit"].as<unsigned long long>();
   unsigned int n_create = cl_options["nCreate"].as<unsigned int>();
   unsigned int n_ram = cl_options["nRam"].as<unsigned int>();
   std::cout << "Number of floating points : " << n_size << "\n";
@@ -161,18 +161,6 @@ int main(int argc, char *argv[]) {
   std::cout << "Create floats : " << n_create << "\n";
   std::cout << "Ram Size : " << n_ram << "\n";
   timer serial_timer;
-
-  // if (n_create == 1) {
-  //   // create floats
-  //   vector<float> *arr = new vector<float>(n_size/10);
-  //   for (int i = 0; i < 10; i++) {
-  //     arr->resize(n_size/10);
-  //     createFloatingPoints(arr, n_size/10, 123);
-  //     binWrite(arr, "randomFloats.bin", n_size/10, 1);
-  //     arr->resize(0);
-  //   }
-  //   delete arr;
-  // }
 
   serial_timer.start();
 
@@ -193,9 +181,6 @@ int main(int argc, char *argv[]) {
     printf("%lu\n", sorted_array.size());
     isSort(sorted_array, n_size/n_split);
   }
-  // for (int i = 0; i < 50; i++) {
-  //   printf("%f ", sorted_array[i]);
-  // }
 
   return 0;
 }

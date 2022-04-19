@@ -148,17 +148,17 @@ int main(int argc, char *argv[]) {
       "custom",
       {
           {"nSize", "Number of floating points",         
-           cxxopts::value<unsigned long>()->default_value(DEFAULT_N)},
+           cxxopts::value<unsigned long long>()->default_value(DEFAULT_N)},
           {"nSplit", "Number of split points",         
-           cxxopts::value<unsigned long>()->default_value(DEFAULT_SPLIT)},
+           cxxopts::value<unsigned long long>()->default_value(DEFAULT_SPLIT)},
           {"nRam", "Gb or Ram",         
           cxxopts::value<unsigned int>()->default_value(DEFAULT_RAM_SIZE)},
           {"nThreads", "Number of threads",         
           cxxopts::value<unsigned int>()->default_value(DEFAULT_RAM_SIZE)}
       });
   auto cl_options = options.parse(argc, argv);
-  unsigned long n_size = cl_options["nSize"].as<unsigned long>();
-  unsigned long n_split = cl_options["nSplit"].as<unsigned long>();
+  unsigned long long n_size = cl_options["nSize"].as<unsigned long long>();
+  unsigned long long n_split = cl_options["nSplit"].as<unsigned long long>();
   unsigned int n_ram = cl_options["nRam"].as<unsigned int>();
   unsigned int n_threads = cl_options["nThreads"].as<unsigned int>();
 
@@ -201,9 +201,6 @@ int main(int argc, char *argv[]) {
     printf("%lu\n", sorted_array.size());
     isSort(sorted_array, n_size/(n_split*n_threads));
   }
-  // for (int i = 0; i < 50; i++) {
-  //   printf("%f ", sorted_array[i]);
-  // }
 
   return 0;
 }
