@@ -136,13 +136,13 @@ void merge_K(unsigned int K, unsigned long long size, unsigned int ram, unsigned
     } 
       
     if(sorted_vec.size() > split_size) {
-      binWrite(&sorted_vec, "sortedfloats.bin", sorted_vec.size(), 1);
+      binWrite(&sorted_vec, "sortedFloats.bin", sorted_vec.size(), 1);
       sorted_vec.resize(0);
       sorted_vec.reserve(current_MaxK[chunk]);
     }
     
   }
-  binWrite(&sorted_vec, "sortedfloats.bin", sorted_vec.size(), 1);
+  binWrite(&sorted_vec, "sortedFloats.bin", sorted_vec.size(), 1);
   printf("indx: %lu\n", index);
 } 
 
@@ -201,12 +201,12 @@ int main(int argc, char *argv[]) {
   printf("time: %f\n", time_taken);
 
   vector<float> sorted_array;
-  printf("checking if sortedfloats.bin is sorted in iterations\n");
+  printf("checking if sortedFloats.bin is sorted in iterations\n");
 
   for (int k = 0; k < 10; k++) {
     sorted_array.resize(0);
     sorted_array.resize(n_size/(n_split*n_threads));
-    binRead(&sorted_array, "sortedfloats.bin", n_size/(n_split*n_threads), k*(n_size/(n_split*n_threads)));
+    binRead(&sorted_array, "sortedFloats.bin", n_size/(n_split*n_threads), k*(n_size/(n_split*n_threads)));
     printf("%lu\n", sorted_array.size());
     isSort(sorted_array, n_size/(n_split*n_threads));
   }

@@ -125,13 +125,13 @@ void merge_K(unsigned int K, unsigned long long size, unsigned int ram) {
     } 
       
     if(sorted_vec.size() > split_size) {
-      binWrite(&sorted_vec, "sortedfloats.bin", sorted_vec.size(), 1);
+      binWrite(&sorted_vec, "sortedFloats.bin", sorted_vec.size(), 1);
       sorted_vec.resize(0);
       sorted_vec.reserve(current_MaxK[chunk]);
     }
     
   }
-  binWrite(&sorted_vec, "sortedfloats.bin", sorted_vec.size(), 1);
+  binWrite(&sorted_vec, "sortedFloats.bin", sorted_vec.size(), 1);
   printf("indx: %lu\n", index);
 } 
 
@@ -179,7 +179,7 @@ int main(int argc, char *argv[]) {
   for (int k = 0; k < 10; k++) {
     sorted_array.resize(0);
     sorted_array.resize(n_size/n_split);
-    binRead(&sorted_array, "sortedfloats.bin", n_size/n_split, k*(n_size/n_split));
+    binRead(&sorted_array, "sortedFloats.bin", n_size/n_split, k*(n_size/n_split));
     isSort(sorted_array, n_size/n_split);
   }
 
