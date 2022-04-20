@@ -51,8 +51,6 @@ bool isSort(std::vector<float> arr, unsigned long N) {
 // store sorted vector into sub file
 void sort_K(unsigned int k, unsigned long long size, unsigned int start, unsigned int end, unsigned int threads) {
   unsigned long split_size = size/threads;
-  printf("%d, %d\n", start, end);
-  printf("%lu, %lu, %d\n", split_size, size, k);
 
   for (int i = start; i < end; i++) {
     vector<float> *readArr = new vector<float>(split_size);

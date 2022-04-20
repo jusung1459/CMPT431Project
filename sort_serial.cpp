@@ -167,18 +167,19 @@ int main(int argc, char *argv[]) {
   // read N points and sort
   // write sorted to file
   sort_K(n_split, n_size);
-  merge_K(n_split, n_size, n_ram);
+  printf("finished sorting %lld files\n", n_split);
+  printf("time: %f\n", serial_timer.total());
 
+  merge_K(n_split, n_size, n_ram);
   double time_taken = serial_timer.stop();
-  printf("time: %f\n", time_taken);
+  printf("total time: %f\n", time_taken);
 
   vector<float> sorted_array;
-
+  printf("checking if sortedfloats.bin is sorted in iterations\n");
   for (int k = 0; k < 10; k++) {
     sorted_array.resize(0);
     sorted_array.resize(n_size/n_split);
     binRead(&sorted_array, "sortedfloats.bin", n_size/n_split, k*(n_size/n_split));
-    printf("%lu\n", sorted_array.size());
     isSort(sorted_array, n_size/n_split);
   }
 
