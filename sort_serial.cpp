@@ -10,8 +10,6 @@
 #define DEFAULT_N "10000000000"
 #define DEFAULT_SPLIT "8"
 #define DEFAULT_SEED 123
-#define DEFAULT_CREATE "0"
-#define DEFAULT_RAM_SIZE "5"
 
 struct Node {
   float value;  // floating-point value
@@ -46,6 +44,7 @@ bool isSort(std::vector<float> arr, unsigned long N) {
 
 // Separates an array of 10 billion numbers into smaller chunks
 // and then sorts those chunks using quicksort
+// Array chunks are stored in separate files
 // @params
 // k = number of splits (how many times the original array is partitioned)
 // size = total size of the array (10 billion for this assignment)
@@ -63,15 +62,14 @@ void sort_K(unsigned int k, unsigned long long size) {
     delete readArr;
   }
 
-  printf("Finished sorting %lld files\n", k);
+  printf("Finished sorting %d files\n", k);
 }
 
 // Merge all sorted array chunks into one big array
 // @params
 // K = number of splits (how many times the original array is partitioned)
 // size = total size of the array (10 billion for this assignment)
-// ram = not used
-void merge_K(unsigned int K, unsigned long long size, unsigned int ram) {
+void merge_K(unsigned int K, unsigned long long size) {
   printf("Merging all sorted files into one\n");
 
   std::vector<float> vecs[K];
@@ -80,7 +78,7 @@ void merge_K(unsigned int K, unsigned long long size, unsigned int ram) {
   unsigned long current_MaxK[K];
   unsigned long prev_MaxK[K];
   unsigned long split_size = size/K;
-  unsigned long avaiable_floats = 10000000; //((ram * 1000000000)/4)/(K+1);
+  unsigned long avaiable_floats = 10000000;
 
   sorted_vec.reserve(split_size);
 
@@ -180,23 +178,15 @@ int main(int argc, char *argv[]) {
           {"nSize", "Number of floating points",         
            cxxopts::value<unsigned long long>()->default_value(DEFAULT_N)},
           {"nSplit", "Number of split points",         
-           cxxopts::value<unsigned long long>()->default_value(DEFAULT_SPLIT)},
-          {"nCreate", "Number of split points",         
-           cxxopts::value<unsigned int>()->default_value(DEFAULT_CREATE)},
-           {"nRam", "Number of split points",         
-           cxxopts::value<unsigned int>()->default_value(DEFAULT_RAM_SIZE)} 
+           cxxopts::value<unsigned long long>()->default_value(DEFAULT_SPLIT)}
       });
   
   // Read input parameters
   auto cl_options = options.parse(argc, argv);
   unsigned long long n_size = cl_options["nSize"].as<unsigned long long>();
   unsigned long long n_split = cl_options["nSplit"].as<unsigned long long>();
-  unsigned int n_create = cl_options["nCreate"].as<unsigned int>();
-  unsigned int n_ram = cl_options["nRam"].as<unsigned int>();
   std::cout << "Number of floating points : " << n_size << "\n";
   std::cout << "Number of split points : " << n_split << "\n";
-  std::cout << "Create floats : " << n_create << "\n";
-  std::cout << "Ram Size : " << n_ram << "\n";
   timer serial_timer;
 
   serial_timer.start();
@@ -204,7 +194,7 @@ int main(int argc, char *argv[]) {
   // Sort K separate files
   // and then merge them into one
   sort_K(n_split, n_size);
-  merge_K(n_split, n_size, n_ram);
+  merge_K(n_split, n_size);
 
   double time_taken = serial_timer.stop();
 
