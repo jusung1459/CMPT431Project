@@ -14,8 +14,8 @@
 #define DEFAULT_RAM_SIZE "5"
 
 struct Node {
-  float value;
-  int chunk;
+  float value;  // floating-point value
+  int chunk;    // which file the value is from
 };
 
 struct compare {
@@ -25,6 +25,10 @@ struct compare {
   }
 };
 
+// Checks if the input vector arr is sorted in ascending order
+// @params
+// arr = input vector of floating numbers
+// N = size of vector arr
 bool isSort(std::vector<float> arr, unsigned long N) {
   float prev, cur, next;
   for(int i = 1; i < N; i++) {
@@ -32,14 +36,19 @@ bool isSort(std::vector<float> arr, unsigned long N) {
       prev = arr[i-1];
       cur = arr[i];
       next = arr[i+1];
-      printf("Mistake founded in array. Sequence not sorted [%f, %f, %f]\n", prev, cur, next);
+      printf("Mistake found in array. Sequence not sorted [%f, %f, %f]\n", prev, cur, next);
       return false;
     }
   }
-  printf("Sorted chunk in sortedFloats.bin\n");
+
   return true;
 }
 
+// Separates an array of 10 billion numbers into smaller chunks
+// and then sorts those chunks using quicksort
+// @params
+// k = number of splits (how many times the original array is partitioned)
+// size = total size of the array (10 billion for this assignment)
 void sort_K(unsigned int k, unsigned long long size) {
   unsigned long split_size = size/k;
 
@@ -47,15 +56,24 @@ void sort_K(unsigned int k, unsigned long long size) {
     vector<float> *readArr = new vector<float>(split_size);
     std::string file_name = "sortedFloats_" + std::to_string(i) + ".bin";
     binRead(readArr, "randomFloats.bin", split_size,i*split_size);
-    printf("Finished reading from large bin file, index: %d \n", i);
+    printf("Finished reading from large file, index: %d \n", i);
     std::sort((*readArr).begin(), (*readArr).begin()+split_size);
     binWrite(readArr, file_name, split_size, 0);
-    printf("Finished writing to bin file %s \n", file_name.c_str());
+    printf("Finished writing array %d to bin file %s \n", i, file_name.c_str());
     delete readArr;
   }
+
+  printf("Finished sorting %lld files\n", k);
 }
- 
+
+// Merge all sorted array chunks into one big array
+// @params
+// K = number of splits (how many times the original array is partitioned)
+// size = total size of the array (10 billion for this assignment)
+// ram = not used
 void merge_K(unsigned int K, unsigned long long size, unsigned int ram) {
+  printf("Merging all sorted files into one\n");
+
   std::vector<float> vecs[K];
   std::vector<float> sorted_vec;
   int index_K[K];
@@ -63,8 +81,12 @@ void merge_K(unsigned int K, unsigned long long size, unsigned int ram) {
   unsigned long prev_MaxK[K];
   unsigned long split_size = size/K;
   unsigned long avaiable_floats = 10000000; //((ram * 1000000000)/4)/(K+1);
+
   sorted_vec.reserve(split_size);
-  printf("%lu %lu\n", avaiable_floats, split_size);
+
+  // Initialization step
+  // Store the beginning of each sorted bin file
+  // into memory for future access
   for (int i = 0; i < K; i++) {
     std::string file = "sortedFloats_" + std::to_string(i) + ".bin";
     index_K[i] = 0;
@@ -77,6 +99,10 @@ void merge_K(unsigned int K, unsigned long long size, unsigned int ram) {
     vecs[i].resize(current_MaxK[i]);
     binRead(&vecs[i], file, current_MaxK[i], index_K[i]);
   }
+
+  // Initialize a min heap
+  // using floating point values 
+  // that we read into memory the previous initialization step
   priority_queue<Node,vector<Node>, compare> minh;
   unsigned long index = 0;
   for(int j=0; j<K; j++) {
@@ -86,20 +112,22 @@ void merge_K(unsigned int K, unsigned long long size, unsigned int ram) {
       node.chunk = j;
       minh.push(node);
       index_K[j]++;
-      // printf("%d %f ", j, vecs[j][index_K[j]]);
       index++;
     }
   }
 
-  int chunk =0;
+  // Combine smaller sorted bin files 
+  // into one large sorted file
+  int chunk = 0;
   while(minh.size() > 0) {
-    // get min and pop off heap
+    // Get min value from heap
+    // and insert it into the sorted vector
     chunk = minh.top().chunk;
     sorted_vec.push_back(minh.top().value);
     minh.pop();
 
+    // If we ran out of numbers stored in memory for one file
     if (index_K[chunk] >= current_MaxK[chunk]) {
-      // read in next chunk from file and put into vector when empty
       if (index_K[chunk] < split_size) {
         prev_MaxK[chunk] = current_MaxK[chunk];
         if ((avaiable_floats+index_K[chunk]) < split_size) {
@@ -107,6 +135,8 @@ void merge_K(unsigned int K, unsigned long long size, unsigned int ram) {
         } else {
           current_MaxK[chunk] = split_size;
         }
+        // Load in more numbers from the file to the vector
+        // so we have access to them in memory
         vecs[chunk].resize(0);
         vecs[chunk].resize(current_MaxK[chunk]-index_K[chunk]);
         std::string file = "sortedFloats_" + std::to_string(chunk) + ".bin";
@@ -114,9 +144,12 @@ void merge_K(unsigned int K, unsigned long long size, unsigned int ram) {
       }
     }
 
+    // If we still have numbers stored in memory  
     if (index_K[chunk] < current_MaxK[chunk]) {
+      // Determine which number we just took out of the heap
+      // and which file it belonged to
+      // And then, push a new number from that file into the heap
       struct Node node;
-      // printf("before value, prev_max: %ld, current_maxK: %ld, index_K: %d, diff:%ld \n", prev_MaxK[chunk], current_MaxK[chunk], index_K[chunk], index_K[chunk]-prev_MaxK[chunk]);
       node.value = vecs[chunk][index_K[chunk]-prev_MaxK[chunk]];
       node.chunk = chunk;
       minh.push(node);
@@ -124,13 +157,16 @@ void merge_K(unsigned int K, unsigned long long size, unsigned int ram) {
       index++;
     } 
       
+    // If the sorted vector is full
     if(sorted_vec.size() > split_size) {
+      // Write the values in the sorted vector to a file
       binWrite(&sorted_vec, "sortedFloats.bin", sorted_vec.size(), 1);
+      // Reset the sorted vector to take in more values
       sorted_vec.resize(0);
       sorted_vec.reserve(current_MaxK[chunk]);
     }
-    
   }
+
   binWrite(&sorted_vec, "sortedFloats.bin", sorted_vec.size(), 1);
 } 
 
@@ -150,6 +186,8 @@ int main(int argc, char *argv[]) {
            {"nRam", "Number of split points",         
            cxxopts::value<unsigned int>()->default_value(DEFAULT_RAM_SIZE)} 
       });
+  
+  // Read input parameters
   auto cl_options = options.parse(argc, argv);
   unsigned long long n_size = cl_options["nSize"].as<unsigned long long>();
   unsigned long long n_split = cl_options["nSplit"].as<unsigned long long>();
@@ -163,24 +201,34 @@ int main(int argc, char *argv[]) {
 
   serial_timer.start();
 
-  // read N points and sort
-  // write sorted to file
+  // Sort K separate files
+  // and then merge them into one
   sort_K(n_split, n_size);
-  printf("Finished sorting %lld files\n", n_split);
-  printf("Time: %f\n", serial_timer.total());
-  printf("Merging all sorted bin files into one\n");
   merge_K(n_split, n_size, n_ram);
-  printf("Finished merging all sorted bin files into one\n");
-  double time_taken = serial_timer.stop();
-  printf("Total time: %f\n", time_taken);
 
+  double time_taken = serial_timer.stop();
+
+  // Print time taken
+  printf("\n***************\n");
+  printf("Finished merging all sorted files into one\n");
+  printf("Time taken to sort: %f\n", time_taken);
+  printf("***************\n\n");
+
+  // Validate the output
   vector<float> sorted_array;
-  printf("Checking if sortedfloats.bin is sorted in iterations\n");
+  printf("Validating the output. Checking if the array is sorted in ascending order.\n");
+  bool sorted = true;
   for (int k = 0; k < 10; k++) {
     sorted_array.resize(0);
     sorted_array.resize(n_size/n_split);
     binRead(&sorted_array, "sortedFloats.bin", n_size/n_split, k*(n_size/n_split));
-    isSort(sorted_array, n_size/n_split);
+    sorted = sorted && isSort(sorted_array, n_size/n_split);
+  }
+
+  if (sorted) {
+    printf("Validation complete. Array was sorted correctly\n");
+  } else {
+    printf("Validation complete. Array was not sorted correctly.\n");
   }
 
   return 0;
