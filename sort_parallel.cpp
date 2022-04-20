@@ -14,7 +14,6 @@ using namespace std;
 #define DEFAULT_N "10000000000"
 #define DEFAULT_SPLIT "8"
 #define DEFAULT_SEED 123
-#define DEFAULT_RAM_SIZE "5"
 #define DEFAULT_THREAD_SIZE "2"
 
 // Node to store value and chunk file number
@@ -78,9 +77,8 @@ void sort_K(unsigned int k, unsigned long long size, unsigned int start, unsigne
 // @params
 // K = number of splits (how many times the original array is partitioned)
 // size = total size of the array (10 billion for this assignment)
-// ram = not used
 // threads = total number of threads
-void merge_K(unsigned int K, unsigned long long size, unsigned int ram, unsigned int threads) {
+void merge_K(unsigned int K, unsigned long long size, unsigned int threads) {
   printf("Merging all sorted files into one\n");
 
   std::vector<float> vecs[K*threads];
@@ -189,22 +187,18 @@ int main(int argc, char *argv[]) {
            cxxopts::value<unsigned long long>()->default_value(DEFAULT_N)},
           {"nSplit", "Number of split points",         
            cxxopts::value<unsigned long long>()->default_value(DEFAULT_SPLIT)},
-          {"nRam", "Gb or Ram",         
-          cxxopts::value<unsigned int>()->default_value(DEFAULT_RAM_SIZE)},
           {"nThreads", "Number of threads",         
-          cxxopts::value<unsigned int>()->default_value(DEFAULT_RAM_SIZE)}
+          cxxopts::value<unsigned int>()->default_value(DEFAULT_THREAD_SIZE)}
       });
 
   // Read input arguments
   auto cl_options = options.parse(argc, argv);
   unsigned long long n_size = cl_options["nSize"].as<unsigned long long>();
   unsigned long long n_split = cl_options["nSplit"].as<unsigned long long>();
-  unsigned int n_ram = cl_options["nRam"].as<unsigned int>();
   unsigned int n_threads = cl_options["nThreads"].as<unsigned int>();
 
   std::cout << "Number of floating points : " << n_size << "\n";
   std::cout << "Number of split points : " << n_split << "\n";
-  std::cout << "Ram Size : " << n_ram << "\n";
   std::cout << "Number of Threads : " << n_threads << std::endl;
   
   timer serial_timer;
@@ -228,7 +222,7 @@ int main(int argc, char *argv[]) {
   } 
 
   // Merge separate files into one sorted array
-  merge_K(n_split, n_size, n_ram, n_threads);
+  merge_K(n_split, n_size, n_threads);
 
   double time_taken = serial_timer.stop();
 
