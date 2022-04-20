@@ -83,8 +83,8 @@ void merge_K(unsigned int K, unsigned long long size) {
   sorted_vec.reserve(split_size);
 
   // Initialization step
-  // Store the beginning of each sorted bin file
-  // into memory for future access
+  // Store the beginning of each sorted bin file in vecs
+  // All numbers are separated by which file they came from
   for (int i = 0; i < K; i++) {
     std::string file = "sortedFloats_" + std::to_string(i) + ".bin";
     index_K[i] = 0;
@@ -99,8 +99,7 @@ void merge_K(unsigned int K, unsigned long long size) {
   }
 
   // Initialize a min heap
-  // using floating point values 
-  // that we read into memory the previous initialization step
+  // using floating point values from vecs
   priority_queue<Node,vector<Node>, compare> minh;
   unsigned long index = 0;
   for(int j=0; j<K; j++) {
@@ -124,7 +123,7 @@ void merge_K(unsigned int K, unsigned long long size) {
     sorted_vec.push_back(minh.top().value);
     minh.pop();
 
-    // If we ran out of numbers stored in memory for one file
+    // If we ran out of numbers stored in vecs for one file
     if (index_K[chunk] >= current_MaxK[chunk]) {
       if (index_K[chunk] < split_size) {
         prev_MaxK[chunk] = current_MaxK[chunk];
@@ -133,7 +132,7 @@ void merge_K(unsigned int K, unsigned long long size) {
         } else {
           current_MaxK[chunk] = split_size;
         }
-        // Load in more numbers from the file to the vector
+        // Load in more numbers from the file to vecs
         // so we have access to them in memory
         vecs[chunk].resize(0);
         vecs[chunk].resize(current_MaxK[chunk]-index_K[chunk]);
@@ -142,11 +141,11 @@ void merge_K(unsigned int K, unsigned long long size) {
       }
     }
 
-    // If we still have numbers stored in memory  
+    // If we still have numbers stored in vecs 
     if (index_K[chunk] < current_MaxK[chunk]) {
       // Determine which number we just took out of the heap
       // and which file it belonged to
-      // And then, push a new number from that file into the heap
+      // And then, push a new number from that file (from vecs) into the heap
       struct Node node;
       node.value = vecs[chunk][index_K[chunk]-prev_MaxK[chunk]];
       node.chunk = chunk;
@@ -181,7 +180,7 @@ int main(int argc, char *argv[]) {
            cxxopts::value<unsigned long long>()->default_value(DEFAULT_SPLIT)}
       });
   
-  // Read input parameters
+  // Read input arguments
   auto cl_options = options.parse(argc, argv);
   unsigned long long n_size = cl_options["nSize"].as<unsigned long long>();
   unsigned long long n_split = cl_options["nSplit"].as<unsigned long long>();
