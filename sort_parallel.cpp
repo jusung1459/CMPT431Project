@@ -70,7 +70,7 @@ void sort_K(unsigned int k, unsigned long long size, unsigned int start, unsigne
     delete readArr;
   }
 
-  printf("Finished sorting %lld files\n", k);
+  printf("Finished sorting %d files\n", k);
 }
 
 // Merge all sorted array chunks into one big array
