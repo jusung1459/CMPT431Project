@@ -208,11 +208,11 @@ int main(int argc, char *argv[]) {
   std::cout << "Number of Threads : " << n_threads << std::endl;
   
   timer serial_timer;
-
   serial_timer.start();
 
+  // Sort K different chunks of the big array
+  // in different threads
   std::thread threads[n_threads];
-
   int start = 0;
   int end = n_split;
   for (unsigned int i = 0; i < n_threads; i++) {
@@ -221,31 +221,39 @@ int main(int argc, char *argv[]) {
     start = end;
     end += n_split;          
   } 
+
+  // Wait for threads to finish sorting their separate files
   for (int i = 0; i < n_threads; i++) {
     threads[i].join();
   } 
 
-
-  printf("Time: %f\n", serial_timer.total());
-
-  printf("Merging all sorted bin files into one\n");
+  // Merge separate files into one sorted array
   merge_K(n_split, n_size, n_ram, n_threads);
-  printf("Finished merging all sorted bin files into one\n");
+
   double time_taken = serial_timer.stop();
-  printf("Time: %f\n", time_taken);
+
+  // Print statistics
+  printf("\n***************\n");
+  printf("Finished merging all sorted bin files into one\n");
+  printf("Time taken to sort: %f\n", time_taken);
+  printf("***************\n\n");
 
   vector<float> sorted_array;
-  printf("Checking if sortedFloats.bin is sorted in iterations\n");
+  printf("Validating the output. Checking if the array is sorted in ascending order.\n");
 
+  bool sorted = true;
   for (int k = 0; k < 10; k++) {
     sorted_array.resize(0);
     sorted_array.resize(n_size/(n_split*n_threads));
     binRead(&sorted_array, "sortedFloats.bin", n_size/(n_split*n_threads), k*(n_size/(n_split*n_threads)));
-    isSort(sorted_array, n_size/(n_split*n_threads));
+    sorted = sorted && isSort(sorted_array, n_size/(n_split*n_threads));
+  }
+
+  if (sorted) {
+    printf("Validation complete. Array was sorted correctly\n");
+  } else {
+    printf("Validation complete. Array was not sorted correctly.\n");
   }
 
   return 0;
 }
-
-
-// ./sort_serial --nSize 10000000000 --nSplit 10 --nCreate 0

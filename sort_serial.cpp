@@ -222,6 +222,3 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
-
-
-// ./sort_serial --nSize 10000000000 --nSplit 10 --nCreate 0
