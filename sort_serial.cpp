@@ -40,7 +40,7 @@ bool isSort(std::vector<float> arr, unsigned long N) {
   return true;
 }
 
-void sort_K(unsigned int k, unsigned long size) {
+void sort_K(unsigned int k, unsigned long long size) {
   unsigned long split_size = size/k;
 
   for (int i = 0; i < k; i++) {
@@ -55,7 +55,7 @@ void sort_K(unsigned int k, unsigned long size) {
   }
 }
  
-void merge_K(unsigned int K, unsigned long size, unsigned int ram) {
+void merge_K(unsigned int K, unsigned long long size, unsigned int ram) {
   std::vector<float> vecs[K];
   std::vector<float> sorted_vec;
   int index_K[K];

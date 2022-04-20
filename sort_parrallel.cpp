@@ -49,7 +49,7 @@ bool isSort(std::vector<float> arr, unsigned long N) {
 // reads in a chunk from the large file to vector
 // then sorts the vector
 // store sorted vector into sub file
-void sort_K(unsigned int k, unsigned long size, unsigned int start, unsigned int end, unsigned int threads) {
+void sort_K(unsigned int k, unsigned long long size, unsigned int start, unsigned int end, unsigned int threads) {
   unsigned long split_size = size/threads;
   printf("%d, %d\n", start, end);
   printf("%lu, %lu, %d\n", split_size, size, k);
@@ -68,7 +68,7 @@ void sort_K(unsigned int k, unsigned long size, unsigned int start, unsigned int
 // loads in chunks from sub files into vectors
 // merges vectors into sorted vector
 // by using min heap to compare values
-void merge_K(unsigned int K, unsigned long size, unsigned int ram, unsigned int threads) {
+void merge_K(unsigned int K, unsigned long long size, unsigned int ram, unsigned int threads) {
   std::vector<float> vecs[K*threads];
   std::vector<float> sorted_vec;
   int index_K[K];
