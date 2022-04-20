@@ -9,17 +9,13 @@ MPICXX = mpic++
 CXXFLAGS = -std=c++14 -O3 -pthread $(MACRO) binaryFileController.cpp
 
 COMMON= core/utils.h core/cxxopts.h core/get_time.h 
-SERIAL= sort_serial sort_parrallel generateFloats
-PARALLEL= sort_parrallel_MPI
+SERIAL= sort_serial sort_parallel generateFloats
 ALL= $(SERIAL) $(PARALLEL)
 
 all : $(ALL)
 
 $(SERIAL): %: %.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $<
-
-$(PARALLEL): %: %.cpp
-	$(MPICXX) $(CXXFLAGS) -o $@ $<
 
 .PHONY : clean
 
