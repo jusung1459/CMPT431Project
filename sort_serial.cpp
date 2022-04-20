@@ -32,11 +32,11 @@ bool isSort(std::vector<float> arr, unsigned long N) {
       prev = arr[i-1];
       cur = arr[i];
       next = arr[i+1];
-      printf("prev: %f, cur: %f, next: %f\n", prev, cur, next);
+      printf("Mistake founded in array. Sequence not sorted [%f, %f, %f]\n", prev, cur, next);
       return false;
     }
   }
-  printf("is sorted\n");
+  printf("Sorted chunk in sortedFloats.bin\n");
   return true;
 }
 
@@ -47,10 +47,10 @@ void sort_K(unsigned int k, unsigned long long size) {
     vector<float> *readArr = new vector<float>(split_size);
     std::string file_name = "sortedFloats_" + std::to_string(i) + ".bin";
     binRead(readArr, "randomFloats.bin", split_size,i*split_size);
-    printf("finished reading from large bin file, index: %d \n", i);
+    printf("Finished reading from large bin file, index: %d \n", i);
     std::sort((*readArr).begin(), (*readArr).begin()+split_size);
     binWrite(readArr, file_name, split_size, 0);
-    printf("finished writing to bin file %s \n", file_name.c_str());
+    printf("Finished writing to bin file %s \n", file_name.c_str());
     delete readArr;
   }
 }
@@ -132,7 +132,6 @@ void merge_K(unsigned int K, unsigned long long size, unsigned int ram) {
     
   }
   binWrite(&sorted_vec, "sortedFloats.bin", sorted_vec.size(), 1);
-  printf("indx: %lu\n", index);
 } 
 
 int main(int argc, char *argv[]) {
@@ -167,15 +166,16 @@ int main(int argc, char *argv[]) {
   // read N points and sort
   // write sorted to file
   sort_K(n_split, n_size);
-  printf("finished sorting %lld files\n", n_split);
-  printf("time: %f\n", serial_timer.total());
-
+  printf("Finished sorting %lld files\n", n_split);
+  printf("Time: %f\n", serial_timer.total());
+  printf("Merging all sorted bin files into one\n");
   merge_K(n_split, n_size, n_ram);
+  printf("Finished merging all sorted bin files into one\n");
   double time_taken = serial_timer.stop();
-  printf("total time: %f\n", time_taken);
+  printf("Total time: %f\n", time_taken);
 
   vector<float> sorted_array;
-  printf("checking if sortedfloats.bin is sorted in iterations\n");
+  printf("Checking if sortedfloats.bin is sorted in iterations\n");
   for (int k = 0; k < 10; k++) {
     sorted_array.resize(0);
     sorted_array.resize(n_size/n_split);

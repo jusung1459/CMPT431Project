@@ -38,11 +38,11 @@ bool isSort(std::vector<float> arr, unsigned long N) {
       prev = arr[i-1];
       cur = arr[i];
       next = arr[i+1];
-      printf("prev: %f, cur: %f, next: %f\n", prev, cur, next);
+      printf("Mistake founded in array. Sequence not sorted [%f, %f, %f]\n", prev, cur, next);
       return false;
     }
   }
-  printf("is sorted\n");
+  printf("Sorted chunk in sortedFloats.bin\n");
   return true;
 }
 
@@ -55,10 +55,11 @@ void sort_K(unsigned int k, unsigned long long size, unsigned int start, unsigne
   for (int i = start; i < end; i++) {
     vector<float> *readArr = new vector<float>(split_size);
     std::string file_name = "sortedFloats_" + std::to_string(i) + ".bin";
-    printf("%d\n", i);
     binRead(readArr, "randomFloats.bin", split_size,i*split_size);
+    printf("Finished reading from large bin file, index: %d \n", i);
     std::sort((*readArr).begin(), (*readArr).begin()+split_size);
     binWrite(readArr, file_name, split_size, 0);
+    printf("Finished writing to bin file %s \n", file_name.c_str());
     delete readArr;
   }
 }
@@ -143,7 +144,6 @@ void merge_K(unsigned int K, unsigned long long size, unsigned int ram, unsigned
     
   }
   binWrite(&sorted_vec, "sortedFloats.bin", sorted_vec.size(), 1);
-  printf("indx: %lu\n", index);
 } 
 
 int main(int argc, char *argv[]) {
@@ -181,33 +181,31 @@ int main(int argc, char *argv[]) {
 
   int start = 0;
   int end = n_split;
-  printf("main %d %d\n", start, end);
   for (unsigned int i = 0; i < n_threads; i++) {
     threads[i] = std::thread(sort_K, 
                             n_split, n_size, start, end, n_threads);
     start = end;
     end += n_split;          
-    printf("main %d %d\n", start, end);
   } 
   for (int i = 0; i < n_threads; i++) {
     threads[i].join();
   } 
-  printf("finished sorting %lld files\n", n_split);
-  printf("time: %f\n", serial_timer.total());
+  printf("Finished sorting %lld files\n", n_split);
+  printf("Time: %f\n", serial_timer.total());
 
+  printf("Merging all sorted bin files into one\n");
   merge_K(n_split, n_size, n_ram, n_threads);
-  
+  printf("Finished merging all sorted bin files into one\n");
   double time_taken = serial_timer.stop();
-  printf("time: %f\n", time_taken);
+  printf("Time: %f\n", time_taken);
 
   vector<float> sorted_array;
-  printf("checking if sortedFloats.bin is sorted in iterations\n");
+  printf("Checking if sortedFloats.bin is sorted in iterations\n");
 
   for (int k = 0; k < 10; k++) {
     sorted_array.resize(0);
     sorted_array.resize(n_size/(n_split*n_threads));
     binRead(&sorted_array, "sortedFloats.bin", n_size/(n_split*n_threads), k*(n_size/(n_split*n_threads)));
-    printf("%lu\n", sorted_array.size());
     isSort(sorted_array, n_size/(n_split*n_threads));
   }
 
