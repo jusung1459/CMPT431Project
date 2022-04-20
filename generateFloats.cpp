@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 
   serial_timer.start();
 
-  // create floats
+  // Generate an input file with random floats of size n_size
   vector<float> *arr = new vector<float>(n_size/10);
   arr->resize(n_size/10);
   createFloatingPoints(arr, n_size/10, 123);
@@ -40,11 +40,8 @@ int main(int argc, char *argv[]) {
   delete arr;
 
   double time_taken = serial_timer.stop();
-  printf("time: %f\n", time_taken);
+  printf("Time taken: %f\n", time_taken);
   printf("Finished creating %llu random floats\n", n_size);
 
   return 0;
 }
-
-
-// ./sort_serial --nSize 10000000000 --nSplit 10 --nCreate 0
